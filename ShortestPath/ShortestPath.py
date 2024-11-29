@@ -5,15 +5,13 @@ import numpy as np
 import yaml
 from queue import PriorityQueue
 
-class Point:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
+MAX_FLOAT = sys.float_info.max
 
 class Node:
 
     # dist is distance to start node
-    def __init__(self, point, dist=sys.float_info.max, parent=None):
+    # point is a 2-elem tuple
+    def __init__(self, point, dist=MAX_FLOAT, parent=None):
         self.point = point
         self.parent = parent
         self.distance = dist
@@ -26,25 +24,26 @@ class AugmentedQueue:
         self.q = PriorityQueue()
 
     def add_node(self, node):
+        pass
         
+def real_to_grid(xy, x_spacing, y_spacing):
+    j = xy[0]/x_spacing - 0.5
+    i = xy[1]/y_spacing - 0.5
+    print("i=" + str(i) + ", j=" + str(j))
+    return (i, j)
 
-def real_to_grid(x, y, x_spacing, y_spacing):
-    j = x/x_spacing - 0.5
-    i = y/y_spacing - 0.5
-    return i,j
+def grid_to_real(ij, x_spacing, y_spacing):
+    x = (ij[1] + 0.5)*x_spacing
+    y = (ij[0] + 0.5)*y_spacing
+    return (x, y)
 
-def grid_to_real(i, j, x_spacing, y_spacing):
-    x = (j + 0.5)*x_spacing
-    y = (i + 0.5)*y_spacing
-    return x, y
-
-def find_nearest_grid(point, x_spacing,y_spacing):
-    i,j = real_to_grid(point[0], point[1], x_spacing,y_spacing)
-   # print("i=" + str(i) + ", j=" + str(j))
-    near_i = round(i[0])
-    near_j = round(j[0])
-
-    return near_i, near_j
+def find_nearest_grid(xy, x_spacing,y_spacing):
+    ij = real_to_grid(xy, x_spacing,y_spacing)
+    print("ij = " + str(ij))
+    print("ij[0][0]=" + str(ij[0][0]) + ", ij[1][0]=" + str(ij[1][0]))
+    near_i = round(ij[0][0])
+    near_j = round(ij[1][0])
+    return (near_i, near_j)
 
 def dijkstras(occupancy_map,x_spacing,y_spacing,start,goal):
     """
@@ -63,13 +62,13 @@ def dijkstras(occupancy_map,x_spacing,y_spacing,start,goal):
         metric coordinates)
     """
     ## Find the nearest node to the start node
-    si, sj = find_nearest_grid(start, x_spacing, y_spacing)
+    st = find_nearest_grid(start, x_spacing, y_spacing)
 
     ## Find the nearest node to the end node
-    gi, gj = find_nearest_grid(goal, x_spacing, y_spacing)
+    gl = find_nearest_grid(goal, x_spacing, y_spacing)
 
-    print("start is near to " + str(si) + ", " + str(sj))
-    print("goal is near to " + str(gi) + ", " + str(gj))
+    print("start is near to " + str(st[0]) + ", " + str(st[1]))
+    print("goal is near to " + str(gl[0]) + ", " + str(gl[1]))
 
     # checking_start = grid_to_real(si, sj, x_spacing, y_spacing)
     # checking_goal = grid_to_real(gi, gj, x_spacing, y_spacing)
@@ -77,13 +76,17 @@ def dijkstras(occupancy_map,x_spacing,y_spacing,start,goal):
     # print("checking_start: " + str(checking_start[0]) + ", " + str(checking_start[1]))
     # print("checking_goal: " + str(checking_goal[0]) + ", " + str(checking_goal[1]))
 
-    start_node = Node(si, sj)
+    start_node = Node(st)
+    goal_node = Node(gl)
     node_q = PriorityQueue()
-    node_q.put(start_node)
+    node_q.put(MAX_FLOAT, st)
+    node_dict = {st:start_node}
 
-    while(True):
+    node_dict[gl] = goal_node
+
+    #while(True):
         # Take the node with the smallest distance
-        current_node = node_q.get()
+     #   current_node = node_q.get()
 
 
 
