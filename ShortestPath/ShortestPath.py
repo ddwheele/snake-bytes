@@ -8,28 +8,35 @@ from queue import PriorityQueue
 MAX_FLOAT = sys.float_info.max
 
 class Node:
-
     # dist is distance to start node
     # point is a 2-elem tuple
+    # parent is the Node before this in the path
     def __init__(self, point, dist=MAX_FLOAT, parent=None):
         self.point = point
         self.parent = parent
         self.distance = dist
 
-    def myfunc(self):
-        print("Hello my name is " + self.name)
+# return true if map square is available, false otherwise
+def grid_square_fair(map, ij):
+    i = ij[0]
+    j = ij[1]
+    size = np.shape(map)
+    max_i = size[0]
+    max_j = size[1]
+    if i < 0 or j < 0  or  i > max_i or j > max_j:
+        return False
 
-class AugmentedQueue:
-    def __init__(self):
-        self.q = PriorityQueue()
+    val = map[i][j]
+    if val > 0:
+        return True
+    else:
+        return False
 
-    def add_node(self, node):
-        pass
-        
+
 def real_to_grid(xy, x_spacing, y_spacing):
     j = xy[0]/x_spacing - 0.5
     i = xy[1]/y_spacing - 0.5
-    print("i=" + str(i) + ", j=" + str(j))
+  #  print("i=" + str(i) + ", j=" + str(j))
     return (i, j)
 
 def grid_to_real(ij, x_spacing, y_spacing):
@@ -39,8 +46,7 @@ def grid_to_real(ij, x_spacing, y_spacing):
 
 def find_nearest_grid(xy, x_spacing,y_spacing):
     ij = real_to_grid(xy, x_spacing,y_spacing)
-    print("ij = " + str(ij))
-    print("ij[0][0]=" + str(ij[0][0]) + ", ij[1][0]=" + str(ij[1][0]))
+
     near_i = round(ij[0][0])
     near_j = round(ij[1][0])
     return (near_i, near_j)
@@ -62,40 +68,62 @@ def dijkstras(occupancy_map,x_spacing,y_spacing,start,goal):
         metric coordinates)
     """
     ## Find the nearest node to the start node
-    st = find_nearest_grid(start, x_spacing, y_spacing)
+    start_coord = find_nearest_grid(start, x_spacing, y_spacing)
 
     ## Find the nearest node to the end node
-    gl = find_nearest_grid(goal, x_spacing, y_spacing)
+    goal_coord = find_nearest_grid(goal, x_spacing, y_spacing)
 
-    print("start is near to " + str(st[0]) + ", " + str(st[1]))
-    print("goal is near to " + str(gl[0]) + ", " + str(gl[1]))
+    print("start is near to " + str(start_coord[0]) + ", " + str(start_coord[1]))
+    print("goal is near to " + str(goal_coord[0]) + ", " + str(goal_coord[1]))
 
-    # checking_start = grid_to_real(si, sj, x_spacing, y_spacing)
-    # checking_goal = grid_to_real(gi, gj, x_spacing, y_spacing)
+    # checking_start = grid_to_real(st, x_spacing, y_spacing)
+    # checking_goal = grid_to_real(gl, x_spacing, y_spacing)
 
     # print("checking_start: " + str(checking_start[0]) + ", " + str(checking_start[1]))
     # print("checking_goal: " + str(checking_goal[0]) + ", " + str(checking_goal[1]))
 
-    start_node = Node(st)
-    goal_node = Node(gl)
+    start_node = Node(start_coord)
+    goal_node = Node(goal_coord)
+    # priority queue linking distance from start to tuple with coordinates
     node_q = PriorityQueue()
-    node_q.put(MAX_FLOAT, st)
-    node_dict = {st:start_node}
+    node_q.put(0, start_coord)
 
-    node_dict[gl] = goal_node
+    # dictionary with key coordinate tuple and value Node
+    node_dict = {start_coord:start_node}
+    node_dict[goal_coord] = goal_node
 
-    #while(True):
+    best_coords = node_q.get()
+    while(best_coords != goal_coord):
         # Take the node with the smallest distance
-     #   current_node = node_q.get()
+        best_coords = node_q.get()
+        curr_i = best_coords[0]
+        curr_j = best_coords[1]
+        current_node = node_dict[best_coords]
+        current_node_dist = current_node.distance
+        
+        # find the neighbors of current_node
+        north_coord = (curr_i-1, curr_j)
+        south_coord = (curr_i+1, curr_j)
+        east_coord = (curr_i, curr_j-1)
+        west_coord = (curr_i, curr_j+1)
+
+        # Visit all of its neighbors and add them with the distance to the q
+        node_q = evaluate_this_neighbor(occupancy_map, node_q, node_dict, current_node, north_coord,current_node_dist)
+        node_q = evaluate_this_neighbor(occupancy_map, node_q, node_dict, current_node, south_coord,current_node_dist)
+        node_q = evaluate_this_neighbor(occupancy_map, node_q, node_dict, current_node, east_coord, current_node_dist)
+        node_q = evaluate_this_neighbor(occupancy_map, node_q, node_dict, current_node, west_coord, current_node_dist)
 
 
-
-        # Visit all of its neighbors and add them with the distance to the 
-
-
-    # Each node also needs to know its parent
-
-    # Repeat until you get to the end
+def evaluate_this_neighbor(map, node_q, node_dict, current_node, neighbor_coord, curr_dist):
+    # get neighbor
+    neighbor_node = node_dict[neighbor_coord]
+    # update its distance and parent
+    neighbor_node.parent = current_node
+    neighbor_node.distance = curr_dist+1
+    # add it to the priority queue with new distance
+    node_q.put(curr_dist+1, neighbor_coord)
+    # return the modified queue
+    return node_q
 
 def test():
     """
