@@ -38,15 +38,15 @@ def grid_square_fair(ij):
     max_i = size[0]
     max_j = size[1]
     if i < 0 or j < 0  or  i > max_i or j > max_j:
-        print(f"{ij} is out of bounds")
+      #  print(f"{ij} is out of bounds")
         return False
 
     val = MAP[i][j]
     if val > 0:
-        print(f"{ij} is occupied")
+      #  print(f"{ij} is occupied")
         return False
     else:
-        print(f"{ij} is clear")
+     #   print(f"{ij} is clear")
         return True
 
 
@@ -129,7 +129,7 @@ def dijkstras(start,goal):
         current_node = node_dict[curr_coords]
         
         current_node_dist = current_node.distance
-        print("current_node_dist = " + str(current_node_dist))
+       # print("current_node_dist = " + str(current_node_dist))
         
         # find the neighbors of current_node
         north_coord = (curr_i-1, curr_j)
@@ -139,29 +139,34 @@ def dijkstras(start,goal):
 
         # Visit all of its neighbors and add them with the distance to the q
         node_q = evaluate_this_neighbor(node_q, node_dict, current_node, north_coord,current_node_dist)
-        print("Contents of the PriorityQueue:", list(node_q.queue))
+      #  print("Contents of the PriorityQueue:", list(node_q.queue))
         node_q = evaluate_this_neighbor(node_q, node_dict, current_node, south_coord,current_node_dist)
-        print("Contents of the PriorityQueue:", list(node_q.queue))
+      #  print("Contents of the PriorityQueue:", list(node_q.queue))
         node_q = evaluate_this_neighbor(node_q, node_dict, current_node, east_coord, current_node_dist)
-        print("Contents of the PriorityQueue:", list(node_q.queue))
+      #  print("Contents of the PriorityQueue:", list(node_q.queue))
         node_q = evaluate_this_neighbor(node_q, node_dict, current_node, west_coord, current_node_dist)
-        print("Contents of the PriorityQueue:", list(node_q.queue))
+       # print("Contents of the PriorityQueue:", list(node_q.queue))
 
         best_q_entry = node_q.get()
         curr_coords = best_q_entry[1]
 
-        print(f"NEXT TO EXPAND is {curr_coords}")
+    print("I found a path!!!!!!!!!!!!!!!!")
+    print(f"reached goal {goal_coord}")
 
-        input("Press Enter to continue...")
+    goal_node = node_dict[goal_coord]
+    goal_node.print_me_grid
+   # print("distance is ")
+
+      #  input("Press Enter to continue...")
 
 
 def evaluate_this_neighbor(node_q, node_dict, current_node, neighbor_coord, curr_dist):
-    print(f"neighbor_coord is {neighbor_coord}")
+  #  print(f"neighbor_coord is {neighbor_coord}")
     if not grid_square_fair(neighbor_coord):
-        print(f"rejecting {neighbor_coord}")
+   #     print(f"rejecting {neighbor_coord}")
         return node_q
    # print("=====")
-    print(f"KEEPING {neighbor_coord}")
+   # print(f"KEEPING {neighbor_coord}")
     # get neighbor
     neighbor_node = node_dict[neighbor_coord]
 
