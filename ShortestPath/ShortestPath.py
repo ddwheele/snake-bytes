@@ -46,6 +46,8 @@ def mark_on_map(ij, symbol):
     global MAP2
     i = ij[0]
     j = ij[1]
+    print("marking map at " + str(i) + ", " + str(j))
+
     MAP2[i][j] = symbol
 
 def print_map2():  
@@ -95,6 +97,8 @@ def print_path(start_node, goal_node):
     while not curr_node == start_node:
         curr_node.print_everything()
         curr_node = curr_node.parent
+        mark_on_map(curr_node.point, "+," + str(curr_node.distance))
+        print_map2()
         input("Press Enter to continue...")
 
 def evaluate_this_neighbor(node_q, node_dict, current_node, neighbor_coord, curr_dist):
@@ -103,15 +107,16 @@ def evaluate_this_neighbor(node_q, node_dict, current_node, neighbor_coord, curr
         return node_q
     neighbor_node = node_dict[neighbor_coord]
 
-    # update its distance and parent
-    neighbor_node.parent = current_node
-    print("The parent of " + neighbor_node.to_string() + " is  "+ current_node.to_string())
-    neighbor_node.distance = curr_dist+1
-
-  #  neighbor_node.print_me_grid()
+    potential_new_distance = curr_dist+1
+    if potential_new_distance < neighbor_node.distance:
+        # update its distance and parent
+        neighbor_node.parent = current_node
+        print("The parent of " + neighbor_node.to_string() + " is  "+ current_node.to_string())
+        neighbor_node.distance = potential_new_distance
+        mark_on_map(neighbor_coord, "e," + str(potential_new_distance))
+        # add it to the priority queue with new distance
+        node_q.put((curr_dist+1, neighbor_coord))
     
-    # add it to the priority queue with new distance
-    node_q.put((curr_dist+1, neighbor_coord))
     # return the modified queue
     return node_q
 
@@ -170,8 +175,8 @@ def dijkstras(start,goal):
     curr_coords = best_q_entry[1]
     print(f"THE START is {curr_coords}")
 
-    mark_on_map(start_coord, 's')
-    mark_on_map(goal_coord, 'g')
+    mark_on_map(start_coord, 'S,0')
+    mark_on_map(goal_coord, 'G,?')
     print_map2()
     
     while(curr_coords != goal_coord):
@@ -195,6 +200,7 @@ def dijkstras(start,goal):
         node_q = evaluate_this_neighbor(node_q, node_dict, current_node, east_coord, current_node_dist)
         node_q = evaluate_this_neighbor(node_q, node_dict, current_node, west_coord, current_node_dist)
 
+        print_map2()
         input("Press Enter to continue...")
 
         best_q_entry = node_q.get()
@@ -203,8 +209,11 @@ def dijkstras(start,goal):
     print("I found a path!!!!!!!!!!!!!!!!")
 
     # finish the last node
+   
     print(f"reached goal {goal_coord}")
     goal_node = node_dict[goal_coord]
+
+    mark_on_map(goal_coord, "G," + str(goal_node.distance))
 
     print_path(start_node, goal_node)
    # goal_node = node_dict[goal_coord]
@@ -356,7 +365,13 @@ def main():
     size = np.shape(MAP)
     max_i = size[0]
     max_j = size[1]
-    MAP2 = [["A"]*max_i]*max_j
+    MAP2 = [[" . " for i in range(max_j)] for j in range(max_i)]
+
+    for j in range(0, max_j):
+        for i in range(0, max_i):
+            if MAP[i][j] > 0:
+                MAP2[i][j] = "111"
+
    # print("x_spacing is " + str(x_spacing))
    # print("y_spacing is " + str(y_spacing))
     path = dijkstras(pos_init,pos_goal)
