@@ -52,7 +52,7 @@ def mark_on_map(ij, symbol):
     global MAP2
     i = ij[0]
     j = ij[1]
-    print("marking map at " + str(i) + ", " + str(j))
+   # print("marking map at " + str(i) + ", " + str(j))
 
     MAP2[i][j] = symbol
 
@@ -104,6 +104,7 @@ def find_nearest_grid(xy):
     return (near_i, near_j)
 
 def construct_path(start, goal, start_node, goal_node):
+    print("goal_node distance is " + str(goal_node.distance))
     num = goal_node.distance + 2
     #path = np.full((num, ), (0,0)) 
 
@@ -115,39 +116,37 @@ def construct_path(start, goal, start_node, goal_node):
     for i in range(shape[0]):
             path[i,0] = sub_array.copy()
 
-    sz = np.size(goal)
-    print(sz)
     path[0,0] = goal
     curr_node = goal_node
-    print(path)
+    #print(path)
     i=1
     while not curr_node == start_node:
-        print("i = " + str(i))
-        curr_node.print_everything()
+      #  print("i = " + str(i))
+       # curr_node.print_everything()
         curr_node = curr_node.parent
         path[i,0] = curr_node.as_real_numpy()
         i=i+1
         mark_on_map(curr_node.point, "=," + str(curr_node.distance))
-        print_map2()
-        print(path)
-        input("Press Enter to continue...")
+     #   print_map2()
+      #  print(path)
+       # input("Press Enter to continue...")
 
-    print("i = " + str(i))
+  #  print("i = " + str(i))
     path[i,0] = start
     print(path)
+    print_map2()
     return path
 
 def evaluate_this_neighbor(node_q, node_dict, current_node, neighbor_coord, curr_dist):
 
     if not grid_square_fair(neighbor_coord):
         return node_q
-    neighbor_node = node_dict[neighbor_coord]
-
+    neighbor_node = node_dict[neighbor_coord
     potential_new_distance = curr_dist+1
     if potential_new_distance < neighbor_node.distance:
         # update its distance and parent
         neighbor_node.parent = current_node
-        print("The parent of " + neighbor_node.to_string() + " is  "+ current_node.to_string())
+     #   print("The parent of " + neighbor_node.to_string() + " is  "+ current_node.to_string())
         neighbor_node.distance = potential_new_distance
         mark_on_map(neighbor_coord, "e," + str(potential_new_distance))
         # add it to the priority queue with new distance
@@ -216,7 +215,7 @@ def dijkstras(start,goal):
     print_map2()
     
     while(curr_coords != goal_coord):
-        # Take the node with the smallest distance
+        # Take the node with the smallest distance4
         curr_i = curr_coords[0]
         curr_j = curr_coords[1]
         current_node = node_dict[curr_coords]
@@ -235,8 +234,18 @@ def dijkstras(start,goal):
         node_q = evaluate_this_neighbor(node_q, node_dict, current_node, south_coord,current_node_dist)
         node_q = evaluate_this_neighbor(node_q, node_dict, current_node, east_coord, current_node_dist)
         node_q = evaluate_this_neighbor(node_q, node_dict, current_node, west_coord, current_node_dist)
-
         print_map2()
+
+        print(f"east is {east_coord} and goal is {goal_coord}")
+        if north_coord == goal_coord:
+            break
+        if south_coord == goal_coord:
+            break
+        if east_coord == goal_coord:
+            break
+        if west_coord == goal_coord:
+            break
+
         input("Press Enter to continue...")
 
         best_q_entry = node_q.get()
@@ -245,6 +254,8 @@ def dijkstras(start,goal):
     print("I found a path!!!!!!!!!!!!!!!!")
 
     # finish the last node
+
+
    
     print(f"reached goal {goal_coord}")
     goal_node = node_dict[goal_coord]
