@@ -237,7 +237,7 @@ def dijkstras(start,goal):
         node_q = evaluate_this_neighbor(node_q, node_dict, current_node, west_coord, current_node_dist)
 
         print_map2()
-       # input("Press Enter to continue...")
+        input("Press Enter to continue...")
 
         best_q_entry = node_q.get()
         curr_coords = best_q_entry[1]
@@ -275,7 +275,7 @@ def test():
     y_spacing1 = 0.2
     start1 = np.array([[0.3], [0.3], [0]])
     goal1 = np.array([[0.6], [1], [0]])
-    path1 = dijkstras(test_map1,x_spacing1,y_spacing1,start1,goal1)
+    path1 = call_me(test_map1,x_spacing1,y_spacing1,start1,goal1)
     true_path1 = np.array([
         [ 0.3  ,  0.3  ],
         [ 0.325,  0.3  ],
@@ -304,7 +304,7 @@ def test():
     goal2 = np.array([[1.1], [0.9], [-1.5707963267948966]])
     x_spacing2 = 0.2
     y_spacing2 = 0.2
-    path2 = dijkstras(test_map2,x_spacing2,y_spacing2,start2,goal2)
+    path2 = call_me(test_map2,x_spacing2,y_spacing2,start2,goal2)
     true_path2 = np.array([[ 0.5,  1.0],
                            [ 0.5,  1.1],
                            [ 0.5,  1.3],
@@ -337,7 +337,7 @@ def test_for_grader():
     y_spacing1 = 1
     start1 = np.array([[1.5], [1.5], [0]])
     goal1 = np.array([[7.5], [1], [0]])
-    path1 = dijkstras(test_map1,x_spacing1,y_spacing1,start1,goal1)
+    path1 = call_me(test_map1,x_spacing1,y_spacing1,start1,goal1)
     s = 0
     for i in range(len(path1)-1):
       s += np.sqrt((path1[i][0]-path1[i+1][0])**2 + (path1[i][1]-path1[i+1][1])**2)
@@ -367,6 +367,26 @@ def test_for_grader():
     print("Path 2 length:")
     print(s)
 
+def call_me(test_map1,x_spacing1,y_spacing1,start1,goal1):
+    global MAP
+    global MAP2
+    global X_SPACING
+    global Y_SPACING
+
+    MAP = test_map1
+    X_SPACING = x_spacing1
+    Y_SPACING = y_spacing1
+
+    size = np.shape(MAP)
+    max_i = size[0]
+    max_j = size[1]
+    MAP2 = [[" . " for i in range(max_j)] for j in range(max_i)]
+
+    for j in range(0, max_j):
+        for i in range(0, max_i):
+            if MAP[i][j] > 0:
+                MAP2[i][j] = "111"
+    dijkstras(start1, goal1)
 
 
 def main():
