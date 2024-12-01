@@ -11,6 +11,7 @@ MAP2 = {}
 X_SPACING = 1
 Y_SPACING = 1
 
+
 class Node:
     # dist is distance to start node
     # point is a 2-elem tuple
@@ -27,6 +28,11 @@ class Node:
         print("Distance: " + str(self.distance))
         print("Parent " + self.parent.to_string())
         print("---")
+
+    def as_real_numpy(self):
+        x = (self.point[1] + 0.5)*X_SPACING
+        y = (self.point[0] + 0.5)*Y_SPACING
+        return np.array([[x], [y], [0]])
 
     def to_string(self):
         return f"{self.point}"
@@ -85,6 +91,11 @@ def grid_to_real(ij):
     y = (ij[0] + 0.5)*Y_SPACING
     return (x, y)
 
+def grid_to_real_numpy(ij):
+    x = (ij[1] + 0.5)*X_SPACING
+    y = (ij[0] + 0.5)*Y_SPACING
+    return np.array([[x], [y], [0]])
+
 def find_nearest_grid(xy):
     ij = real_to_grid(xy)
 
@@ -92,14 +103,39 @@ def find_nearest_grid(xy):
     near_j = round(ij[1][0])
     return (near_i, near_j)
 
-def print_path(start_node, goal_node):
+def construct_path(start, goal, start_node, goal_node):
+    num = goal_node.distance + 2
+    #path = np.full((num, ), (0,0)) 
+
+    # Pre-fill an array with sub-arrays [0, 0]
+    shape = (num, 1)  # Shape of the main array
+    sub_array = np.array([0, 0, 0])  # The sub-array to use
+
+    path = np.empty(shape, dtype=object)
+    for i in range(shape[0]):
+            path[i,0] = sub_array.copy()
+
+    sz = np.size(goal)
+    print(sz)
+    path[0,0] = goal
     curr_node = goal_node
+    print(path)
+    i=1
     while not curr_node == start_node:
+        print("i = " + str(i))
         curr_node.print_everything()
         curr_node = curr_node.parent
-        mark_on_map(curr_node.point, "+," + str(curr_node.distance))
+        path[i,0] = curr_node.as_real_numpy()
+        i=i+1
+        mark_on_map(curr_node.point, "=," + str(curr_node.distance))
         print_map2()
+        print(path)
         input("Press Enter to continue...")
+
+    print("i = " + str(i))
+    path[i,0] = start
+    print(path)
+    return path
 
 def evaluate_this_neighbor(node_q, node_dict, current_node, neighbor_coord, curr_dist):
 
@@ -201,7 +237,7 @@ def dijkstras(start,goal):
         node_q = evaluate_this_neighbor(node_q, node_dict, current_node, west_coord, current_node_dist)
 
         print_map2()
-        input("Press Enter to continue...")
+       # input("Press Enter to continue...")
 
         best_q_entry = node_q.get()
         curr_coords = best_q_entry[1]
@@ -214,13 +250,9 @@ def dijkstras(start,goal):
     goal_node = node_dict[goal_coord]
 
     mark_on_map(goal_coord, "G," + str(goal_node.distance))
+    path = construct_path(start, goal, start_node, goal_node)
+    return path
 
-    print_path(start_node, goal_node)
-   # goal_node = node_dict[goal_coord]
-  #  goal_node.print_me_grid
-   # print("distance is ")
-
-      #  input("Press Enter to continue...")
 
 
 
@@ -350,7 +382,7 @@ def main():
     f.close()
     params = yaml.load(params_raw, Loader=yaml.Loader)
     # Get params we need
-   # occupancy_map = np.array(params['occupancy_map'])
+    # occupancy_map = np.array(params['occupancy_map'])
     pos_init = np.array(params['pos_init'])
     pos_goal = np.array(params['pos_goal'])
 
@@ -375,6 +407,7 @@ def main():
    # print("x_spacing is " + str(x_spacing))
    # print("y_spacing is " + str(y_spacing))
     path = dijkstras(pos_init,pos_goal)
+    print("=====================================")
     print(path)
 
 if __name__ == '__main__':
