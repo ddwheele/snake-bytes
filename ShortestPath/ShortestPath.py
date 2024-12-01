@@ -7,6 +7,7 @@ from queue import PriorityQueue
 
 MAX_FLOAT = sys.float_info.max
 MAP = {}
+MAP2 = {}
 X_SPACING = 1
 Y_SPACING = 1
 
@@ -19,6 +20,17 @@ class Node:
         self.parent = parent
         self.distance = dist
 
+    def print_everything(self):
+        print("---")
+        xy = grid_to_real(self.point)
+        print(f"Grid: {self.point}, Real {xy}")
+        print("Distance: " + str(self.distance))
+        print("Parent " + self.parent.to_string())
+        print("---")
+
+    def to_string(self):
+        return f"{self.point}"
+
     def print_me_grid(self):
         print("---")
         print(f"Node grid coords: {self.point}")
@@ -30,6 +42,21 @@ class Node:
         print(f"Node real coords: {xy}")
         print("my distance is " + str(self.distance))
 
+def mark_on_map(ij, symbol):
+    global MAP2
+    i = ij[0]
+    j = ij[1]
+    MAP2[i][j] = symbol
+
+def print_map2():  
+    size = np.shape(MAP2)
+    max_i = size[0]
+    max_j = size[1]
+    for j in range(0, max_j):
+        for i in range(0, max_i):
+            print(MAP2[i][j], end=' ')
+        print("")
+
 # return true if map square is available, false otherwise
 def grid_square_fair(ij):
     i = ij[0]
@@ -38,22 +65,17 @@ def grid_square_fair(ij):
     max_i = size[0]
     max_j = size[1]
     if i < 0 or j < 0  or  i > max_i or j > max_j:
-      #  print(f"{ij} is out of bounds")
         return False
 
     val = MAP[i][j]
     if val > 0:
-      #  print(f"{ij} is occupied")
         return False
     else:
-     #   print(f"{ij} is clear")
         return True
-
 
 def real_to_grid(xy):
     j = xy[0]/X_SPACING - 0.5
     i = xy[1]/Y_SPACING - 0.5
-  #  print("i=" + str(i) + ", j=" + str(j))
     return (i, j)
 
 def grid_to_real(ij):
@@ -67,6 +89,31 @@ def find_nearest_grid(xy):
     near_i = round(ij[0][0])
     near_j = round(ij[1][0])
     return (near_i, near_j)
+
+def print_path(start_node, goal_node):
+    curr_node = goal_node
+    while not curr_node == start_node:
+        curr_node.print_everything()
+        curr_node = curr_node.parent
+        input("Press Enter to continue...")
+
+def evaluate_this_neighbor(node_q, node_dict, current_node, neighbor_coord, curr_dist):
+
+    if not grid_square_fair(neighbor_coord):
+        return node_q
+    neighbor_node = node_dict[neighbor_coord]
+
+    # update its distance and parent
+    neighbor_node.parent = current_node
+    print("The parent of " + neighbor_node.to_string() + " is  "+ current_node.to_string())
+    neighbor_node.distance = curr_dist+1
+
+  #  neighbor_node.print_me_grid()
+    
+    # add it to the priority queue with new distance
+    node_q.put((curr_dist+1, neighbor_coord))
+    # return the modified queue
+    return node_q
 
 def dijkstras(start,goal):
     """
@@ -122,6 +169,11 @@ def dijkstras(start,goal):
     best_q_entry = node_q.get()
     curr_coords = best_q_entry[1]
     print(f"THE START is {curr_coords}")
+
+    mark_on_map(start_coord, 's')
+    mark_on_map(goal_coord, 'g')
+    print_map2()
+    
     while(curr_coords != goal_coord):
         # Take the node with the smallest distance
         curr_i = curr_coords[0]
@@ -139,47 +191,29 @@ def dijkstras(start,goal):
 
         # Visit all of its neighbors and add them with the distance to the q
         node_q = evaluate_this_neighbor(node_q, node_dict, current_node, north_coord,current_node_dist)
-      #  print("Contents of the PriorityQueue:", list(node_q.queue))
         node_q = evaluate_this_neighbor(node_q, node_dict, current_node, south_coord,current_node_dist)
-      #  print("Contents of the PriorityQueue:", list(node_q.queue))
         node_q = evaluate_this_neighbor(node_q, node_dict, current_node, east_coord, current_node_dist)
-      #  print("Contents of the PriorityQueue:", list(node_q.queue))
         node_q = evaluate_this_neighbor(node_q, node_dict, current_node, west_coord, current_node_dist)
-       # print("Contents of the PriorityQueue:", list(node_q.queue))
+
+        input("Press Enter to continue...")
 
         best_q_entry = node_q.get()
         curr_coords = best_q_entry[1]
 
     print("I found a path!!!!!!!!!!!!!!!!")
-    print(f"reached goal {goal_coord}")
 
+    # finish the last node
+    print(f"reached goal {goal_coord}")
     goal_node = node_dict[goal_coord]
-    goal_node.print_me_grid
+
+    print_path(start_node, goal_node)
+   # goal_node = node_dict[goal_coord]
+  #  goal_node.print_me_grid
    # print("distance is ")
 
       #  input("Press Enter to continue...")
 
 
-def evaluate_this_neighbor(node_q, node_dict, current_node, neighbor_coord, curr_dist):
-  #  print(f"neighbor_coord is {neighbor_coord}")
-    if not grid_square_fair(neighbor_coord):
-   #     print(f"rejecting {neighbor_coord}")
-        return node_q
-   # print("=====")
-   # print(f"KEEPING {neighbor_coord}")
-    # get neighbor
-    neighbor_node = node_dict[neighbor_coord]
-
-    # update its distance and parent
-    neighbor_node.parent = current_node
-    neighbor_node.distance = curr_dist+1
-
-    neighbor_node.print_me_grid()
-    
-    # add it to the priority queue with new distance
-    node_q.put((curr_dist+1, neighbor_coord))
-    # return the modified queue
-    return node_q
 
 def test():
     """
@@ -296,6 +330,7 @@ def test_for_grader():
 
 def main():
     global MAP
+    global MAP2
     global X_SPACING
     global Y_SPACING
 
@@ -317,7 +352,11 @@ def main():
     X_SPACING = params['x_spacing']
     Y_SPACING = params['y_spacing']
     MAP = np.array(params['occupancy_map'])
-
+ 
+    size = np.shape(MAP)
+    max_i = size[0]
+    max_j = size[1]
+    MAP2 = [["A"]*max_i]*max_j
    # print("x_spacing is " + str(x_spacing))
    # print("y_spacing is " + str(y_spacing))
     path = dijkstras(pos_init,pos_goal)
