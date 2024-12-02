@@ -64,11 +64,22 @@ def mark_on_map(ij, symbol):
     global MAP2
     i = ij[0]
     j = ij[1]
-   # print("marking map at " + str(i) + ", " + str(j) + " with " + symbol)
+    print("marking map at " + str(i) + ", " + str(j) + " with " + symbol)
     MAP2[i][j] = symbol
+
+def print_map1():  
+    size = np.shape(MAP)
+    print("size of MAP is " + str(size))
+    max_i = size[0]
+    max_j = size[1]
+    for j in range(0, max_j):
+        for i in range(0, max_i):
+            print(MAP[i][j], end=' ')
+        print("")
 
 def print_map2():  
     size = np.shape(MAP2)
+    print("size of MAP2 is " + str(size))
     max_i = size[0]
     max_j = size[1]
     for j in range(0, max_j):
@@ -80,9 +91,11 @@ def grid_square_in_bounds(ij):
     i = ij[0]
     j = ij[1]
     size = np.shape(MAP)
+    print("size of MAP is " + str(size))
     max_i = size[0]
     max_j = size[1]
-    if i < 0 or j < 0  or  i > max_i or j > max_j:
+    print("ij is " + str(ij))
+    if i < 0 or j < 0  or  i >= max_i or j >= max_j:
         return False
     return True
 
@@ -174,7 +187,7 @@ def construct_path(real_start_node, real_goal_node):
 
 # add to queue if it's unobstructed and has a shorter distance
 def evaluate_this_neighbor(node_q, current_node, neighbor_node, curr_dist):
-  #  print("  evaluating neighbor:" + neighbor_node.to_string())
+    print("  evaluating neighbor:" + neighbor_node.to_string())
     
     if not grid_square_fair(neighbor_node.point):
       #  print("   -rejecting, it was occupied")
@@ -203,28 +216,34 @@ def add_first_neighbors(node_dict, node_q, real_start_node):
     c = (si, sj+1)
     d = (si+1, sj+1)
 
-    aNode = node_dict[a]
-    bNode = node_dict[b]
-    cNode = node_dict[c]
-    dNode = node_dict[d]
+    if grid_square_in_bounds(a):
+        aNode = node_dict[a]
+        node_q = evaluate_this_neighbor(node_q, real_start_node, aNode, 0)
+    
+    if grid_square_in_bounds(b):
+        bNode = node_dict[b]
+        node_q = evaluate_this_neighbor(node_q, real_start_node, bNode, 0)
+
+    if grid_square_in_bounds(c):
+        cNode = node_dict[c]
+        node_q = evaluate_this_neighbor(node_q, real_start_node, cNode, 0)
+    
+    if grid_square_in_bounds(d):
+        dNode = node_dict[d]
+        node_q = evaluate_this_neighbor(node_q, real_start_node, dNode, 0)
+
    # print(f"neighbors are {a}, {b}, {c}, {d}")
   #  print(f"distances are {real_start_node.distance_to(aNode)}, {real_start_node.distance_to(bNode)}, {real_start_node.distance_to(cNode)}, {real_start_node.distance_to(dNode)}")
-
-    node_q = evaluate_this_neighbor(node_q, real_start_node, aNode, 0)
-    node_q = evaluate_this_neighbor(node_q, real_start_node, bNode, 0)
-    node_q = evaluate_this_neighbor(node_q, real_start_node, cNode, 0)
-    node_q = evaluate_this_neighbor(node_q, real_start_node, dNode, 0)
-
     return node_q
 
 def process_neighbor(node_q, node_dict, current_node, neighbor_coord, current_node_dist):
-   # print("Processing neighbor")
+    print(f"Processing neighbor {neighbor_coord}")
     if(grid_square_in_bounds(neighbor_coord)):
         neighbor_node = node_dict[neighbor_coord]
-    #    print(" that is in bounds: " + neighbor_node.to_string())
+        print(" that is in bounds: " + neighbor_node.to_string())
         node_q = evaluate_this_neighbor(node_q,current_node,neighbor_node,current_node_dist)
-    #else:
-     #   print(" -rejecting, it was out of bounds")
+    else:
+        print(" -rejecting, it was out of bounds")
     return node_q
 
 def update_goal_node_if_neighbor_is_near_it(real_goal_node, node_dict, neighbor_coord, current_node_dist):
@@ -367,6 +386,20 @@ def test():
     """
     Function that provides a few examples of maps and their solution paths
     """
+    test_map0 = np.array([
+              [1, 0, 0, 0, 0, 0, 0, 1],
+              [0, 0, 0, 0, 0, 0, 0, 0],
+              [1, 0, 0, 0, 0, 0, 1, 1]])
+    x_spacing0 = 1
+    y_spacing0 = 1
+    start0 = np.array([[1.1], [1.1], [0]])
+    goal0 = np.array([[6], [1.1], [0]])
+    path0 = call_me(test_map0,x_spacing0,y_spacing0,start0,goal0)
+    s = 0
+    for i in range(len(path0)-1):
+      s += np.sqrt((path0[i][0]-path0[i+1][0])**2 + (path0[i][1]-path0[i+1][1])**2)
+
+
     test_map1 = np.array([
               [1, 1, 1, 1, 1, 1, 1, 1],
               [1, 0, 0, 0, 0, 0, 0, 1],
@@ -506,10 +539,13 @@ def call_me(test_map1,x_spacing1,y_spacing1,start1,goal1):
     Y_SPACING = y_spacing1
 
     size = np.shape(MAP)
-    max_i = size[0]
-    max_j = size[1]
+    print("map size = " + str(size))
+    max_i = size[0] # 3
+    max_j = size[1] # 8
     MAP2 = [[" . " for i in range(max_j)] for j in range(max_i)]
 
+    print_map1()
+    print_map2() 
     for j in range(0, max_j):
         for i in range(0, max_i):
             if MAP[i][j] > 0:
