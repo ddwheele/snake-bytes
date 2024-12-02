@@ -166,15 +166,14 @@ def construct_path(real_start_node, real_goal_node):
         path[i,0] = curr_node.as_real_numpy()
         i=i-1
         if i>0:
-            mark_on_map(curr_node.point, "=," + str(curr_node.distance))
-        print_map2()
-        print(path)
-        input("Press Enter to continue...")
+            mark_on_map(curr_node.point, "=,=" )#+ str(curr_node.distance))
+        #print_map2()
+        #print(path)
+        #input("Press Enter to continue...")
 
-  #  print("i = " + str(i))
     path[0,0] = real_start_node.as_real_numpy()
     print(path)
-   # print_map2()
+    print_map2()
     return path
 
 def evaluate_this_neighbor(node_q, current_node, neighbor_node, curr_dist):
@@ -243,8 +242,11 @@ def dijkstras(start,goal):
         starting with "start" and ending with "end" (each node is in
         metric coordinates)
     """
-    start_frac_grid = real_to_grid(start)
-    goal_frac_grid = real_to_grid(goal)
+    st = real_to_grid(start)
+    gl = real_to_grid(goal)
+    start_frac_grid = (st[0][0], st[1][0])
+    goal_frac_grid = (gl[0][0], gl[1][0])
+
     print("============================================")
     print(f"start = {start}")
     print(f"goal = {goal}")
@@ -290,13 +292,8 @@ def dijkstras(start,goal):
     # print("checking_start: " + str(checking_start[0]) + ", " + str(checking_start[1]))
     # print("checking_goal: " + str(checking_goal[0]) + ", " + str(checking_goal[1]))
 
-    cell_radius = np.sqrt(X_SPACING**2 + Y_SPACING**2)
-    print("cell_radius = " + str(cell_radius))
-
     best_q_entry = node_q.get()
-    print(f"best q entry = {best_q_entry}")
           
-    input("Press Enter to continue...")
     curr_coords = best_q_entry[1]
     print(f"THE START is {curr_coords}")
 
@@ -318,7 +315,7 @@ def dijkstras(start,goal):
         if(grid_square_in_bounds(north_coord)):
             north_node = node_dict[north_coord]
             node_q = evaluate_this_neighbor(node_q,current_node,north_node,current_node_dist)
-            north_dist = real_goal_node.distance_to(north_node)[0]
+            north_dist = real_goal_node.distance_to(north_node)
             if (nodes_are_close(north_node, real_goal_node)):
                 real_goal_node.parent = north_node
                 real_goal_node.distance = current_node_dist + 1 + north_dist
@@ -327,7 +324,7 @@ def dijkstras(start,goal):
         if(grid_square_in_bounds(south_coord)):
             south_node = node_dict[south_coord]
             node_q = evaluate_this_neighbor(node_q,current_node,south_node,current_node_dist)
-            south_dist = real_goal_node.distance_to(north_node)[0]
+            south_dist = real_goal_node.distance_to(south_node)
             if (nodes_are_close(south_node, real_goal_node)):
                 real_goal_node.parent = south_node
                 real_goal_node.distance = current_node_dist + 1 + south_dist
@@ -337,7 +334,7 @@ def dijkstras(start,goal):
         if(grid_square_in_bounds(east_coord)):
             east_node = node_dict[east_coord]
             node_q = evaluate_this_neighbor(node_q,current_node,east_node,current_node_dist)
-            east_dist = real_goal_node.distance_to(north_node)[0]
+            east_dist = real_goal_node.distance_to(east_node)
             if (nodes_are_close(east_node, real_goal_node)):
                 real_goal_node.parent = east_node
                 real_goal_node.distance = current_node_dist + 1 + east_dist
@@ -347,7 +344,7 @@ def dijkstras(start,goal):
         if(grid_square_in_bounds(west_coord)):
             west_node = node_dict[west_coord]
             node_q = evaluate_this_neighbor(node_q,current_node,west_node,current_node_dist)
-            west_dist = real_goal_node.distance_to(north_node)[0]
+            west_dist = real_goal_node.distance_to(west_node)
             if (nodes_are_close(west_node, real_goal_node)):
                 real_goal_node.parent = west_node
                 real_goal_node.distance = current_node_dist + 1 + west_dist
@@ -457,12 +454,17 @@ def test_for_grader():
     start1 = np.array([[1.5], [1.5], [0]])
     goal1 = np.array([[7.5], [1], [0]])
     path1 = call_me(test_map1,x_spacing1,y_spacing1,start1,goal1)
+    
+    print("FINAL PATH 1")
+    print(path1)
+
+    input("Press Enter to continue...")
+    
     s = 0
     for i in range(len(path1)-1):
       s += np.sqrt((path1[i][0]-path1[i+1][0])**2 + (path1[i][1]-path1[i+1][1])**2)
     print("Path 1 length:")
     print(s)
-
 
     test_map2 = np.array([
             [0, 0, 0, 0, 0, 0, 0, 0],
@@ -505,7 +507,8 @@ def call_me(test_map1,x_spacing1,y_spacing1,start1,goal1):
         for i in range(0, max_i):
             if MAP[i][j] > 0:
                 MAP2[i][j] = "111"
-    dijkstras(start1, goal1)
+
+    return dijkstras(start1, goal1)
 
 
 def main():
