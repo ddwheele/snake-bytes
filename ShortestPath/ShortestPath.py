@@ -64,7 +64,7 @@ def mark_on_map(ij, symbol):
     global MAP2
     i = ij[0]
     j = ij[1]
-   # print("marking map at " + str(i) + ", " + str(j))
+    print("marking map at " + str(i) + ", " + str(j) + " with " + symbol)
     MAP2[i][j] = symbol
 
 def print_map2():  
@@ -176,24 +176,29 @@ def construct_path(real_start_node, real_goal_node):
     print_map2()
     return path
 
+# add to queue if it's unobstructed and has a shorter distance
 def evaluate_this_neighbor(node_q, current_node, neighbor_node, curr_dist):
+    print("  evaluating neighbor:" + neighbor_node.to_string())
     
     if not grid_square_fair(neighbor_node.point):
+        print("   -rejecting, it was occupied")
         return node_q
-    potential_new_distance = curr_dist+1
+    potential_new_distance = curr_dist + current_node.distance_to(neighbor_node)
     if potential_new_distance < neighbor_node.distance:
-        # update its distance and parent
+        print("   -now it's at distance " + str(potential_new_distance))
         neighbor_node.parent = current_node
      #   print("The parent of " + neighbor_node.to_string() + " is  "+ current_node.to_string())
         neighbor_node.distance = potential_new_distance
         mark_on_map(neighbor_node.point, "e, " )
         # add it to the priority queue with new distance
-        node_q.put((curr_dist+1, neighbor_node.point))
+        node_q.put((potential_new_distance, neighbor_node.point))
+    else:
+        print("   Potential new dist=" + str(potential_new_distance) + ", old dist=" + str(neighbor_node.distance))
     
     # return the modified queue
     return node_q
 
-def add_neighbors(node_dict, node_q, real_start_node):
+def add_first_neighbors(node_dict, node_q, real_start_node):
     si = math.floor(real_start_node.point[0])
     sj = math.floor(real_start_node.point[1])
     print("in add neighbors, " + str(si)+ ", " + str(sj))
@@ -206,25 +211,33 @@ def add_neighbors(node_dict, node_q, real_start_node):
     bNode = node_dict[b]
     cNode = node_dict[c]
     dNode = node_dict[d]
-   # print(f"neighbors are {a}, {b}, {c}, {d}")
-   # print(f"distances are {real_start_node.distance_to(aNode)}, {real_start_node.distance_to(bNode)}, {real_start_node.distance_to(cNode)}, {real_start_node.distance_to(dNode)}")
+    print(f"neighbors are {a}, {b}, {c}, {d}")
+    print(f"distances are {real_start_node.distance_to(aNode)}, {real_start_node.distance_to(bNode)}, {real_start_node.distance_to(cNode)}, {real_start_node.distance_to(dNode)}")
 
-    aNode.parent = real_start_node
-    aNode.distance = real_start_node.distance_to(aNode)
-    node_q.put((real_start_node.distance_to(aNode), a))
+    node_q = evaluate_this_neighbor(node_q, real_start_node, aNode, 0)
+    node_q = evaluate_this_neighbor(node_q, real_start_node, bNode, 0)
+    node_q = evaluate_this_neighbor(node_q, real_start_node, cNode, 0)
+    node_q = evaluate_this_neighbor(node_q, real_start_node, dNode, 0)
 
-    bNode.parent = real_start_node
-    bNode.distance = real_start_node.distance_to(bNode)
-    node_q.put((real_start_node.distance_to(bNode), b))
-
-    cNode.parent = real_start_node
-    cNode.distance = real_start_node.distance_to(cNode)
-    node_q.put((real_start_node.distance_to(cNode), c))
-
-    dNode.parent = real_start_node
-    dNode.distance = real_start_node.distance_to(dNode)
-    node_q.put((real_start_node.distance_to(dNode), d))
     return node_q
+
+def process_neighbor(node_q, node_dict, current_node, neighbor_coord, current_node_dist):
+    print("Processing neighbor")
+    if(grid_square_in_bounds(neighbor_coord)):
+        neighbor_node = node_dict[neighbor_coord]
+        print(" that is in bounds: " + neighbor_node.to_string())
+        node_q = evaluate_this_neighbor(node_q,current_node,neighbor_node,current_node_dist)
+    else:
+        print(" -rejecting, it was out of bounds")
+    return node_q
+
+def update_goal_node_if_neighbor_is_near_it(real_goal_node, node_dict, neighbor_coord, current_node_dist):
+    neighbor_node = node_dict[neighbor_coord]
+    neighbor_dist = real_goal_node.distance_to(neighbor_node)
+    if (nodes_are_close(neighbor_node, real_goal_node)):
+        real_goal_node.parent = neighbor_node
+        real_goal_node.distance = current_node_dist + 1 + neighbor_dist
+    return real_goal_node
 
 def dijkstras(start,goal):
     """
@@ -273,11 +286,9 @@ def dijkstras(start,goal):
 
     # priority queue linking distance from start to grid coordinates
     node_q = PriorityQueue()
-    # node_q.put((0, start_coord))
 
     ## Find the nearest neighbors to the start node and add to queue
-    node_q = add_neighbors(node_dict, node_q, real_start_node)
-
+    node_q = add_first_neighbors(node_dict, node_q, real_start_node)
 
     ## Find the nearest node to the end node
     near_start_coord = find_nearest_grid(start)
@@ -286,14 +297,7 @@ def dijkstras(start,goal):
     print("start is near to " + str(near_start_coord[0]) + ", " + str(near_start_coord[1]))
     print("goal is near to " + str(near_goal_coord[0]) + ", " + str(near_goal_coord[1]))
 
-    # checking_start = grid_to_real(st, x_spacing, y_spacing)
-    # checking_goal = grid_to_real(gl, x_spacing, y_spacing)
-
-    # print("checking_start: " + str(checking_start[0]) + ", " + str(checking_start[1]))
-    # print("checking_goal: " + str(checking_goal[0]) + ", " + str(checking_goal[1]))
-
-    best_q_entry = node_q.get()
-          
+    best_q_entry = node_q.get()       
     curr_coords = best_q_entry[1]
     print(f"THE START is {curr_coords}")
 
@@ -307,52 +311,39 @@ def dijkstras(start,goal):
         curr_i = curr_coords[0]
         curr_j = curr_coords[1]
         current_node = node_dict[curr_coords]
-        
+
+        print("current_node = ")
+        current_node.print_everything()
         current_node_dist = current_node.distance
-        #print(f"current_node_dist = {current_node_dist}")
+        print("current_node_dist=" + str(current_node_dist))
         # find the neighbors of current_node
         north_coord = (curr_i-1, curr_j)
-        if(grid_square_in_bounds(north_coord)):
-            north_node = node_dict[north_coord]
-            node_q = evaluate_this_neighbor(node_q,current_node,north_node,current_node_dist)
-            north_dist = real_goal_node.distance_to(north_node)
-            if (nodes_are_close(north_node, real_goal_node)):
-                real_goal_node.parent = north_node
-                real_goal_node.distance = current_node_dist + 1 + north_dist
-                break
+        node_q = process_neighbor(node_q, node_dict, current_node, north_coord, current_node_dist)
+        real_goal_node = update_goal_node_if_neighbor_is_near_it(real_goal_node, node_dict, north_coord, current_node_dist)
+        if not real_goal_node.parent == None:
+            break
+        
         south_coord = (curr_i+1, curr_j)
-        if(grid_square_in_bounds(south_coord)):
-            south_node = node_dict[south_coord]
-            node_q = evaluate_this_neighbor(node_q,current_node,south_node,current_node_dist)
-            south_dist = real_goal_node.distance_to(south_node)
-            if (nodes_are_close(south_node, real_goal_node)):
-                real_goal_node.parent = south_node
-                real_goal_node.distance = current_node_dist + 1 + south_dist
-                break
+        node_q = process_neighbor(node_q, node_dict, current_node, south_coord, current_node_dist)
+        real_goal_node = update_goal_node_if_neighbor_is_near_it(real_goal_node, node_dict, south_coord, current_node_dist)
+        if not real_goal_node.parent == None:
+            break
 
         east_coord = (curr_i, curr_j-1)
-        if(grid_square_in_bounds(east_coord)):
-            east_node = node_dict[east_coord]
-            node_q = evaluate_this_neighbor(node_q,current_node,east_node,current_node_dist)
-            east_dist = real_goal_node.distance_to(east_node)
-            if (nodes_are_close(east_node, real_goal_node)):
-                real_goal_node.parent = east_node
-                real_goal_node.distance = current_node_dist + 1 + east_dist
-                break
+        node_q = process_neighbor(node_q, node_dict, current_node, east_coord, current_node_dist)
+        real_goal_node = update_goal_node_if_neighbor_is_near_it(real_goal_node, node_dict, east_coord, current_node_dist)
+        if not real_goal_node.parent == None:
+            break
 
         west_coord = (curr_i, curr_j+1)
-        if(grid_square_in_bounds(west_coord)):
-            west_node = node_dict[west_coord]
-            node_q = evaluate_this_neighbor(node_q,current_node,west_node,current_node_dist)
-            west_dist = real_goal_node.distance_to(west_node)
-            if (nodes_are_close(west_node, real_goal_node)):
-                real_goal_node.parent = west_node
-                real_goal_node.distance = current_node_dist + 1 + west_dist
-                break
+        node_q = process_neighbor(node_q, node_dict, current_node, west_coord, current_node_dist)
+        real_goal_node = update_goal_node_if_neighbor_is_near_it(real_goal_node, node_dict, west_coord, current_node_dist)
+        if not real_goal_node.parent == None:
+            break
 
         # Visit all of its neighbors and add them with the distance to the q
-        #print_map2()
-
+        print_map2()
+        input("Press Enter to continue...")
         best_q_entry = node_q.get()
         curr_coords = best_q_entry[1]
 
