@@ -44,7 +44,7 @@ class Node:
     def as_real_numpy(self):
         x = (self.point[1] + 0.5)*X_SPACING
         y = (self.point[0] + 0.5)*Y_SPACING
-        return np.array([[x], [y]])
+        return np.array([x, y])
 
     def to_string(self):
         return f"{self.point}"
@@ -146,24 +146,20 @@ def construct_path(real_start_node, real_goal_node):
     print("num is " + str(num)) 
 
     num  = count
-    # Pre-fill an array with sub-arrays [0, 0]
-    shape = (num, 1)  # Shape of the main array
-    sub_array = np.array([0, 0, 0])  # The sub-array to use
-
-    path = np.empty(shape, dtype=object)
-    for i in range(shape[0]):
-            path[i,0] = sub_array.copy()
+   
+    path = np.zeros((num, 2))
+    print("Just initialized as zeros()")
     print(path)
     curr_node = real_goal_node
     real_goal_node.print_everything()
-    path[num-1,0] = real_goal_node.as_real_numpy()
+    path[num-1,:] = real_goal_node.as_real_numpy()
     print(path)
     i=num-2
     while i > 0:
         print("i = " + str(i))
         curr_node = curr_node.parent
         curr_node.print_everything()
-        path[i,0] = curr_node.as_real_numpy()
+        path[i,:] = curr_node.as_real_numpy()
         i=i-1
         if i>0:
             mark_on_map(curr_node.point, "=,=" )#+ str(curr_node.distance))
@@ -171,7 +167,7 @@ def construct_path(real_start_node, real_goal_node):
         #print(path)
         #input("Press Enter to continue...")
 
-    path[0,0] = real_start_node.as_real_numpy()
+    path[0,:] = real_start_node.as_real_numpy()
     print(path)
     print_map2()
     return path
@@ -343,7 +339,7 @@ def dijkstras(start,goal):
 
         # Visit all of its neighbors and add them with the distance to the q
         print_map2()
-        input("Press Enter to continue...")
+       # input("Press Enter to continue...")
         best_q_entry = node_q.get()
         curr_coords = best_q_entry[1]
 
@@ -396,6 +392,21 @@ def test():
     if np.array_equal(path1,true_path1):
       print("Path 1 passes")
 
+    print("path1[0] = ")
+    print(path1[0])
+
+    print("path1[0][0] = ")
+    print(path1[0][0])
+
+    s = 0
+    for i in range(len(path1)-1):
+      s += np.sqrt((path1[i][0]-path1[i+1][0])**2 + (path1[i][1]-path1[i+1][1])**2)
+
+    print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+    print("Path 1 length:")
+    print(s)
+    print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+
     test_map2 = np.array([
              [0, 0, 0, 0, 0, 0, 0, 0],
              [0, 0, 0, 0, 0, 0, 0, 0],
@@ -424,6 +435,14 @@ def test():
                            [ 1.1,  0.9]])
     if np.array_equal(path2,true_path2):
       print("Path 2 passes")
+    s = 0
+    for i in range(len(path2)-1):
+      s += np.sqrt((path2[i][0]-path2[i+1][0])**2 + (path2[i][1]-path2[i+1][1])**2)
+    print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+    print("Path 2 length:")
+    print(s)
+    print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+
 
 def test_for_grader():
     """
@@ -448,14 +467,24 @@ def test_for_grader():
     
     print("FINAL PATH 1")
     print(path1)
-
+    size = np.shape(path1)
+    print("size = " + str(size))
+    sz = np.shape(path1[0])
+    print("sz = " + str(sz))
     input("Press Enter to continue...")
     
     s = 0
     for i in range(len(path1)-1):
-      s += np.sqrt((path1[i][0]-path1[i+1][0])**2 + (path1[i][1]-path1[i+1][1])**2)
+        a = path1[i,0]
+        b = path1[i+1,0]
+        c = path1[i,1]
+        d = path1[i+1,1]
+        s += np.sqrt((path1[i][0]-path1[i+1][0])**2 + (path1[i][1]-path1[i+1][1])**2)
+        print("s = " + str(s))
+    print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
     print("Path 1 length:")
     print(s)
+    print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
 
     test_map2 = np.array([
             [0, 0, 0, 0, 0, 0, 0, 0],
@@ -476,8 +505,10 @@ def test_for_grader():
     s = 0
     for i in range(len(path2)-1):
       s += np.sqrt((path2[i][0]-path2[i+1][0])**2 + (path2[i][1]-path2[i+1][1])**2)
+    print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
     print("Path 2 length:")
     print(s)
+    print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
 
 def call_me(test_map1,x_spacing1,y_spacing1,start1,goal1):
     global MAP
