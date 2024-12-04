@@ -64,7 +64,7 @@ def mark_on_map(ij, symbol):
     global MAP2
     i = ij[0]
     j = ij[1]
-    print("marking map at " + str(i) + ", " + str(j) + " with " + symbol)
+  #  print("marking map at " + str(i) + ", " + str(j) + " with " + symbol)
     MAP2[i][j] = symbol
 
 def print_map1():  
@@ -91,10 +91,10 @@ def grid_square_in_bounds(ij):
     i = ij[0]
     j = ij[1]
     size = np.shape(MAP)
-    print("size of MAP is " + str(size))
+  #  print("size of MAP is " + str(size))
     max_i = size[0]
     max_j = size[1]
-    print("ij is " + str(ij))
+   # print("ij is " + str(ij))
     if i < 0 or j < 0  or  i >= max_i or j >= max_j:
         return False
     return True
@@ -187,7 +187,7 @@ def construct_path(real_start_node, real_goal_node):
 
 # add to queue if it's unobstructed and has a shorter distance
 def evaluate_this_neighbor(node_q, current_node, neighbor_node, curr_dist):
-    print("  evaluating neighbor:" + neighbor_node.to_string())
+   # print("  evaluating neighbor:" + neighbor_node.to_string())
     
     if not grid_square_fair(neighbor_node.point):
       #  print("   -rejecting, it was occupied")
@@ -237,13 +237,13 @@ def add_first_neighbors(node_dict, node_q, real_start_node):
     return node_q
 
 def process_neighbor(node_q, node_dict, current_node, neighbor_coord, current_node_dist):
-    print(f"Processing neighbor {neighbor_coord}")
+  #  print(f"Processing neighbor {neighbor_coord}")
     if(grid_square_in_bounds(neighbor_coord)):
         neighbor_node = node_dict[neighbor_coord]
-        print(" that is in bounds: " + neighbor_node.to_string())
+       # print(" that is in bounds: " + neighbor_node.to_string())
         node_q = evaluate_this_neighbor(node_q,current_node,neighbor_node,current_node_dist)
-    else:
-        print(" -rejecting, it was out of bounds")
+   # else:
+      #  print(" -rejecting, it was out of bounds")
     return node_q
 
 def update_goal_node_if_neighbor_is_near_it(real_goal_node, node_dict, neighbor_coord, current_node_dist):
