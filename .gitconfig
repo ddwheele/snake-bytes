@@ -1,0 +1,21 @@
+[color]
+        diff = auto
+        status = auto
+        branch = auto
+[alias]
+        # Console gitview replacement
+        lg = log --graph --all --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative
+        co = checkout
+        mrg = merge -ff
+        lgs = log --graph --date=local --all --abbrev-commit
+        getdate  = !"f() { a=$(git log --pretty='format:%ad' ${1}~1..${1} | head -n1); echo $a; }; f"
+        fromdate = !"f() { a=$(git log --all --pretty='format:%H' --until=\"@{${1}}\" | head -n1); echo $a; }; f"
+        s = status
+[user]
+	name = DW Wheeler
+	email = dawn.wheeler@gmail.com
+[credential]
+	helper = 
+	helper = /usr/local/share/gcm-core/git-credential-manager
+[credential "https://dev.azure.com"]
+	useHttpPath = true
